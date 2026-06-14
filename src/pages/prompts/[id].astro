@@ -1,0 +1,64 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro';
+import { promptService } from '@/lib/prompts/service';
+
+const { id } = Astro.params;
+const prompt = await promptService.getPrompt(Number(id));
+
+if (!prompt) return Astro.redirect('/404');
+---
+
+<MainLayout title={prompt.title} description={prompt.content.substring(0, 160)}>
+  <article class="max-w-4xl mx-auto space-y-8">
+    <div class="space-y-4">
+      <div class="flex items-center gap-2">
+        <a href={`/categories/${prompt.category_id}`} class="text-xs font-bold uppercase tracking-wider text-brand-primary hover:underline">
+          {prompt.category_name || 'Uncategorized'}
+        </a>
+        <span class="text-gray-300 dark:text-gray-700">•</span>
+        <span class="text-xs text-gray-500">{new Date(prompt.created_at).toLocaleDateString()}</span>
+      </div>
+      <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">{prompt.title}</h1>
+      
+      <div class="flex flex-wrap gap-2">
+        {prompt.tags?.map(t => (
+          <a href={`/tags/${t.id}`} class="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-400 rounded-lg hover:bg-brand-primary hover:text-white transition-colors">
+            #{t.name}
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <div class="p-8 bg-surface-card dark:bg-dark-card border border-surface-border dark:border-dark-border rounded-3xl shadow-sm relative group">
+      <button 
+        class="absolute top-4 right-4 p-2 bg-surface-bg dark:bg-dark-bg border border-surface-border dark:border-dark-border rounded-xl text-xs font-bold text-brand-primary hover:bg-brand-primary hover:text-white transition-all copy-btn"
+        data-content={prompt.content}
+      >
+        Copy
+      </button>
+      <pre class="whitespace-pre-wrap font-sans text-lg leading-relaxed text-gray-800 dark:text-gray-200">{prompt.content}</pre>
+    </div>
+
+    {prompt.source && (
+      <div class="text-sm text-gray-500">
+        Source: <span class="font-medium">{prompt.source}</span>
+      </div>
+    )}
+  </article>
+</MainLayout>
+
+<script>
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const content = (e.currentTarget as HTMLElement).dataset.content;
+      if (content) {
+        navigator.clipboard.writeText(content);
+        const originalText = (e.currentTarget as HTMLElement).innerText;
+        (e.currentTarget as HTMLElement).innerText = 'Copied!';
+        setTimeout(() => {
+          (e.currentTarget as HTMLElement).innerText = originalText;
+        }, 2000);
+      }
+    });
+  });
+</script>

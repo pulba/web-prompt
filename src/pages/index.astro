@@ -1,0 +1,49 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro';
+import PromptCard from '@/components/prompt/PromptCard.astro';
+import SearchBar from '@/components/ui/SearchBar.astro';
+import { searchService } from '@/lib/search/service';
+import { categoryService } from '@/lib/categories/service';
+
+const [recentPrompts, categories] = await Promise.all([
+  searchService.searchPrompts({ limit: 6 }),
+  categoryService.getAllCategories()
+]);
+---
+
+<MainLayout title="Home" description="Manage and discover the best AI prompts in your personal vault.">
+  <section class="py-12 md:py-20 text-center space-y-6">
+    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight">
+      Your Personal <span class="text-brand-primary">Prompt Vault</span>
+    </h1>
+    <p class="text-lg text-gray-500 max-w-2xl mx-auto">
+      Store, organize, and search your favorite AI prompts from Telegram or Web.
+    </p>
+    
+    <div class="max-w-xl mx-auto pt-8">
+      <SearchBar />
+    </div>
+  </section>
+
+  <section class="py-12 space-y-8">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold">Recent Prompts</h2>
+      <a href="/prompts" class="text-brand-primary font-medium hover:underline">View All &rarr;</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {recentPrompts.items.map(p => <PromptCard prompt={p} />)}
+    </div>
+  </section>
+
+  <section class="py-12 space-y-8">
+    <h2 class="text-2xl font-bold">Browse by Category</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      {categories.map(c => (
+        <a href={`/categories/${c.id}`} class="p-4 text-center rounded-2xl bg-surface-card dark:bg-dark-card border border-surface-border dark:border-dark-border hover:border-brand-primary transition-all group">
+          <span class="block font-bold group-hover:text-brand-primary transition-colors">{c.name}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+</MainLayout>

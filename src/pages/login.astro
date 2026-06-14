@@ -1,0 +1,84 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro';
+import { verifyPassword } from '@/lib/auth/password';
+import { createSession } from '@/lib/auth/session';
+import { dbClient } from '@/lib/db';
+
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const formData = await Astro.request.formData();
+    const username = formData.get('username')?.toString();
+    const password = formData.get('password')?.toString();
+
+    if (username && password) {
+      const result = await dbClient.execute({
+        sql: 'SELECT * FROM users WHERE username = ?',
+        args: [username],
+      });
+
+      if (result.rows.length > 0) {
+        const user = result.rows[0];
+        const isValid = await verifyPassword(password, user.password_hash as string);
+
+        if (isValid) {
+          createSession(Astro.cookies, user.id.toString());
+          return Astro.redirect('/admin');
+        }
+      }
+      // Mitigate brute force with a small delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      error = 'Invalid username or password';
+    }
+  } catch (e) {
+    error = 'An error occurred during login';
+  }
+}
+---
+
+<MainLayout title="Login">
+  <div class="max-w-md mx-auto py-20">
+    <div class="bg-surface-card dark:bg-dark-card p-8 rounded-3xl border border-surface-border dark:border-dark-border shadow-xl">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold">Welcome Back</h1>
+        <p class="text-gray-500 mt-2">Login to manage your prompts</p>
+      </div>
+
+      {error && (
+        <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm font-medium">
+          {error}
+        </div>
+      )}
+
+      <form method="POST" class="space-y-6">
+        <div>
+          <label class="block text-sm font-bold mb-2">Username</label>
+          <input 
+            type="text" 
+            name="username" 
+            required 
+            class="w-full px-4 py-3 rounded-xl bg-surface-bg dark:bg-dark-bg border border-surface-border dark:border-dark-border outline-none focus:ring-2 focus:ring-brand-primary transition-all"
+          />
+        </div>
+        
+        <div>
+          <label class="block text-sm font-bold mb-2">Password</label>
+          <input 
+            type="password" 
+            name="password" 
+            required 
+            class="w-full px-4 py-3 rounded-xl bg-surface-bg dark:bg-dark-bg border border-surface-border dark:border-dark-border outline-none focus:ring-2 focus:ring-brand-primary transition-all"
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full py-4 bg-brand-primary text-white rounded-xl font-bold hover:opacity-90 transition-opacity shadow-lg shadow-brand-primary/20"
+        >
+          Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+</MainLayout>

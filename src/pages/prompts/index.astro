@@ -1,0 +1,42 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro';
+import PromptCard from '@/components/prompt/PromptCard.astro';
+import Pagination from '@/components/ui/Pagination.astro';
+import SearchBar from '@/components/ui/SearchBar.astro';
+import { searchService } from '@/lib/search/service';
+
+const q = Astro.url.searchParams.get('q') || '';
+const page = Number(Astro.url.searchParams.get('page')) || 1;
+const limit = 12;
+
+const results = await searchService.searchPrompts({ q, page, limit });
+---
+
+<MainLayout title="All Prompts" description={`Browse all AI prompts in the vault. Page ${page}.`}>
+  <div class="space-y-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <h1 class="text-3xl font-bold">All Prompts</h1>
+      
+      <div class="flex-1 max-w-md">
+        <SearchBar initialValue={q} />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {results.items.length === 0 ? (
+        <div class="col-span-full py-12 text-center text-gray-500">
+          No prompts found.
+        </div>
+      ) : (
+        results.items.map(p => <PromptCard prompt={p} />)
+      )}
+    </div>
+
+    <Pagination 
+      total={results.total} 
+      limit={results.limit} 
+      currentPage={results.page} 
+      baseUrl="/prompts" 
+    />
+  </div>
+</MainLayout>

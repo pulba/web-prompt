@@ -1,0 +1,106 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import SearchBar from '@/components/ui/SearchBar.astro';
+import { searchService } from '@/lib/search/service';
+import { categoryService } from '@/lib/categories/service';
+import { tagService } from '@/lib/tags/service';
+
+const q = Astro.url.searchParams.get('q') || '';
+const categoryId = Astro.url.searchParams.get('category') ? Number(Astro.url.searchParams.get('category')) : undefined;
+const tagId = Astro.url.searchParams.get('tag') ? Number(Astro.url.searchParams.get('tag')) : undefined;
+const page = Astro.url.searchParams.get('page') ? Number(Astro.url.searchParams.get('page')) : 1;
+
+const [results, categories, tags] = await Promise.all([
+  searchService.searchPrompts({ q, category: categoryId, tag: tagId, page, limit: 10 }),
+  categoryService.getAllCategories(),
+  tagService.getAllTags()
+]);
+---
+
+<AdminLayout title="Search Prompts">
+  <div class="space-y-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <h1 class="text-2xl font-bold">Search Engine</h1>
+      
+      <div class="flex-1 max-w-2xl">
+        <SearchBar action="/admin/search" initialValue={q} />
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-4 p-4 bg-surface-card dark:bg-dark-card border border-surface-border dark:border-dark-border rounded-2xl">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-medium text-gray-500">Category:</span>
+        <select onchange="window.location.href = this.value" class="bg-transparent text-sm outline-none">
+          <option value="/admin/search">All</option>
+          {categories.map(c => (
+            <option value={`/admin/search?q=${q}&category=${c.id}`} selected={c.id === categoryId}>{c.name}</option>
+          ))}
+        </select>
+      </div>
+      
+      <div class="flex items-center gap-2 border-l border-surface-border dark:border-dark-border pl-4">
+        <span class="text-sm font-medium text-gray-500">Tag:</span>
+        <select onchange="window.location.href = this.value" class="bg-transparent text-sm outline-none">
+          <option value="/admin/search">All</option>
+          {tags.map(t => (
+            <option value={`/admin/search?q=${q}&tag=${t.id}`} selected={t.id === tagId}>#{t.name}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {results.items.length === 0 ? (
+        <div class="md:col-span-2 py-12 text-center text-gray-500">
+          No prompts found matching your criteria.
+        </div>
+      ) : (
+        results.items.map(p => (
+          <div class="p-6 bg-surface-card dark:bg-dark-card border border-surface-border dark:border-dark-border rounded-2xl shadow-sm hover:shadow-md transition-shadow relative group">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-brand-primary mb-1 block">
+                  {p.category_name || 'Uncategorized'}
+                </span>
+                <h3 class="text-lg font-bold leading-tight">{p.title}</h3>
+              </div>
+              <button class={`text-xl ${p.favorite ? 'text-yellow-500' : 'text-gray-300'}`}>
+                {p.favorite ? '★' : '☆'}
+              </button>
+            </div>
+            
+            <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-6">
+              {p.content}
+            </p>
+
+            <div class="flex flex-wrap gap-1 mt-auto">
+              {p.tags?.map(t => (
+                <span class="text-[10px] px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-md">
+                  #{t.name}
+                </span>
+              ))}
+            </div>
+            
+            <a href={`/admin/prompts/${p.id}/edit`} class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-transparent hover:ring-brand-primary/20 transition-all" />
+          </div>
+        ))
+      )}
+    </div>
+
+    <!-- Pagination -->
+    {results.total > results.limit && (
+      <div class="flex justify-center gap-2 pt-8">
+        {Array.from({ length: Math.ceil(results.total / results.limit) }).map((_, i) => (
+          <a 
+            href={`/admin/search?q=${q}&category=${categoryId || ''}&tag=${tagId || ''}&page=${i + 1}`}
+            class={`w-10 h-10 flex items-center justify-center rounded-xl font-medium transition-colors ${page === i + 1 ? 'bg-brand-primary text-white' : 'bg-surface-card dark:bg-dark-card border border-surface-border dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+          >
+            {i + 1}
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+</AdminLayout>

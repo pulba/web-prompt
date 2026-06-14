@@ -1,0 +1,31 @@
+---
+interface Props {
+  total: number;
+  limit: number;
+  currentPage: number;
+  baseUrl: string;
+}
+
+const { total, limit, currentPage, baseUrl } = Astro.props;
+const totalPages = Math.ceil(total / limit);
+
+if (totalPages <= 1) return null;
+
+const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+---
+
+<nav class="flex justify-center gap-2 mt-12">
+  {pages.map((p) => {
+    const url = new URL(baseUrl, Astro.url.origin);
+    url.searchParams.set('page', p.toString());
+    
+    return (
+      <a 
+        href={url.toString()}
+        class={`w-10 h-10 flex items-center justify-center rounded-xl font-medium transition-colors ${currentPage === p ? 'bg-brand-primary text-white' : 'bg-surface-card dark:bg-dark-card border border-surface-border dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+      >
+        {p}
+      </a>
+    );
+  })}
+</nav>

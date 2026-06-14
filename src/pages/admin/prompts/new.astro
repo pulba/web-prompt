@@ -1,0 +1,82 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { categoryService } from '@/lib/categories/service';
+import { tagService } from '@/lib/tags/service';
+
+const categories = await categoryService.getAllCategories();
+const tags = await tagService.getAllTags();
+---
+
+<AdminLayout title="Add New Prompt">
+  <div class="max-w-2xl mx-auto space-y-6">
+    <h1 class="text-2xl font-bold">Create New Prompt</h1>
+    
+    <form id="prompt-form" class="space-y-4 bg-surface-card dark:bg-dark-card p-6 rounded-2xl border border-surface-border dark:border-dark-border">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium mb-1">Title</label>
+          <input type="text" name="title" required class="w-full px-4 py-2 rounded-xl border border-surface-border dark:border-dark-border bg-surface-bg dark:bg-dark-bg outline-none focus:ring-2 focus:ring-brand-primary" />
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium mb-1">Category</label>
+          <select name="category_id" class="w-full px-4 py-2 rounded-xl border border-surface-border dark:border-dark-border bg-surface-bg dark:bg-dark-bg outline-none focus:ring-2 focus:ring-brand-primary">
+            <option value="">Uncategorized</option>
+            {categories.map(c => <option value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Source (Optional)</label>
+          <input type="text" name="source" class="w-full px-4 py-2 rounded-xl border border-surface-border dark:border-dark-border bg-surface-bg dark:bg-dark-bg outline-none focus:ring-2 focus:ring-brand-primary" placeholder="e.g. ChatGPT, Reddit" />
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium mb-1">Content</label>
+        <textarea name="content" rows="6" required class="w-full px-4 py-2 rounded-xl border border-surface-border dark:border-dark-border bg-surface-bg dark:bg-dark-bg outline-none focus:ring-2 focus:ring-brand-primary"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-2">Tags</label>
+        <div class="flex flex-wrap gap-2">
+          {tags.map(t => (
+            <label class="inline-flex items-center px-3 py-1.5 rounded-lg border border-surface-border dark:border-dark-border bg-surface-bg dark:bg-dark-bg cursor-pointer hover:border-brand-primary transition-colors">
+              <input type="checkbox" name="tags" value={t.id} class="hidden peer" />
+              <span class="text-sm peer-checked:text-brand-primary peer-checked:font-bold">#{t.name}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-4">
+        <a href="/admin/prompts" class="px-6 py-2 rounded-xl border border-surface-border dark:border-dark-border font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</a>
+        <button type="submit" class="px-6 py-2 bg-brand-primary text-white rounded-xl font-medium hover:opacity-90 transition-opacity">Save Prompt</button>
+      </div>
+    </form>
+  </div>
+</AdminLayout>
+
+<script>
+  const form = document.getElementById('prompt-form') as HTMLFormElement;
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const data: any = Object.fromEntries(formData);
+    
+    // Handle multiple tags
+    data.tags = formData.getAll('tags').map(Number);
+    if (data.category_id) data.category_id = Number(data.category_id);
+    else delete data.category_id;
+    
+    const res = await fetch('/api/prompts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+    if (result.success) window.location.href = '/admin/prompts';
+    else alert(result.error || 'Failed to save prompt');
+  });
+</script>

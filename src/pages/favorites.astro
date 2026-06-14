@@ -1,0 +1,26 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro';
+import PromptCard from '@/components/prompt/PromptCard.astro';
+import { promptService } from '@/lib/prompts/service';
+
+const favorites = await promptService.getFavorites();
+---
+
+<MainLayout title="Favorite Prompts" description="Your curated list of best AI prompts.">
+  <div class="space-y-8">
+    <div class="space-y-2">
+      <h1 class="text-3xl font-bold">Favorites</h1>
+      <p class="text-gray-500">You have {favorites.length} favorite prompts.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {favorites.length === 0 ? (
+        <div class="col-span-full py-12 text-center text-gray-500">
+          No favorites yet. Click the star icon on any prompt to save it here.
+        </div>
+      ) : (
+        favorites.map(p => <PromptCard prompt={p} />)
+      )}
+    </div>
+  </div>
+</MainLayout>

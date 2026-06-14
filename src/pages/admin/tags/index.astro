@@ -1,0 +1,66 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { tagService } from '@/lib/tags/service';
+
+const tags = await tagService.getAllTags();
+---
+
+<AdminLayout title="Manage Tags">
+  <div class="space-y-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Tags</h1>
+      <a href="/admin/tags/new" class="px-4 py-2 bg-brand-primary text-white rounded-xl font-medium hover:opacity-90 transition-opacity">
+        Add New Tag
+      </a>
+    </div>
+
+    <div class="bg-surface-card dark:bg-dark-card border border-surface-border dark:border-dark-border rounded-2xl overflow-hidden">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-surface-border dark:border-dark-border">
+            <th class="px-6 py-4 text-sm font-semibold">Name</th>
+            <th class="px-6 py-4 text-sm font-semibold">Prompts Count</th>
+            <th class="px-6 py-4 text-sm font-semibold text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-border dark:divide-dark-border">
+          {tags.length === 0 ? (
+            <tr>
+              <td colspan="3" class="px-6 py-8 text-center text-gray-500">No tags found.</td>
+            </tr>
+          ) : (
+            tags.map((t) => (
+              <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors">
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                    #{t.name}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500">
+                  {t.prompt_count} prompts
+                </td>
+                <td class="px-6 py-4 text-right space-x-2">
+                  <a href={`/admin/tags/${t.id}/edit`} class="text-brand-primary hover:underline text-sm font-medium">Edit</a>
+                  <button class="text-red-500 hover:underline text-sm font-medium" data-delete={t.id}>Delete</button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  document.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      if (!confirm('Hapus tag ini? Relasi pada prompt akan otomatis terhapus.')) return;
+      const id = (e.currentTarget as HTMLElement).dataset.delete;
+      const res = await fetch(`/api/tags/${id}`, { method: 'DELETE' });
+      const result = await res.json();
+      if (result.success) window.location.reload();
+      else alert(result.error || 'Gagal menghapus tag');
+    });
+  });
+</script>

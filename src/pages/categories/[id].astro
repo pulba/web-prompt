@@ -1,0 +1,39 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro';
+import PromptCard from '@/components/prompt/PromptCard.astro';
+import Pagination from '@/components/ui/Pagination.astro';
+import { searchService } from '@/lib/search/service';
+import { categoryService } from '@/lib/categories/service';
+
+const { id } = Astro.params;
+const categoryId = Number(id);
+const page = Number(Astro.url.searchParams.get('page')) || 1;
+const limit = 12;
+
+const [results, category] = await Promise.all([
+  searchService.searchPrompts({ category: categoryId, page, limit }),
+  categoryService.getCategory(categoryId)
+]);
+
+if (!category) return Astro.redirect('/404');
+---
+
+<MainLayout title={`Category: ${category.name}`} description={`Browse all AI prompts in the ${category.name} category.`}>
+  <div class="space-y-8">
+    <div class="space-y-2">
+      <h1 class="text-3xl font-bold">Category: <span class="text-brand-primary">{category.name}</span></h1>
+      <p class="text-gray-500">{results.total} prompts found in this category.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {results.items.map(p => <PromptCard prompt={p} />)}
+    </div>
+
+    <Pagination 
+      total={results.total} 
+      limit={results.limit} 
+      currentPage={results.page} 
+      baseUrl={`/categories/${id}`} 
+    />
+  </div>
+</MainLayout>

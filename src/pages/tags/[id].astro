@@ -1,0 +1,39 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro';
+import PromptCard from '@/components/prompt/PromptCard.astro';
+import Pagination from '@/components/ui/Pagination.astro';
+import { searchService } from '@/lib/search/service';
+import { tagService } from '@/lib/tags/service';
+
+const { id } = Astro.params;
+const tagId = Number(id);
+const page = Number(Astro.url.searchParams.get('page')) || 1;
+const limit = 12;
+
+const [results, tag] = await Promise.all([
+  searchService.searchPrompts({ tag: tagId, page, limit }),
+  tagService.getTag(tagId)
+]);
+
+if (!tag) return Astro.redirect('/404');
+---
+
+<MainLayout title={`Tag: #${tag.name}`} description={`Browse all AI prompts tagged with #${tag.name}.`}>
+  <div class="space-y-8">
+    <div class="space-y-2">
+      <h1 class="text-3xl font-bold">Tag: <span class="text-brand-primary">#{tag.name}</span></h1>
+      <p class="text-gray-500">{results.total} prompts found with this tag.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {results.items.map(p => <PromptCard prompt={p} />)}
+    </div>
+
+    <Pagination 
+      total={results.total} 
+      limit={results.limit} 
+      currentPage={results.page} 
+      baseUrl={`/tags/${id}`} 
+    />
+  </div>
+</MainLayout>

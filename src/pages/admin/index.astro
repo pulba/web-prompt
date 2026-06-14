@@ -1,0 +1,49 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+
+const stats = [
+  { label: 'Total Prompts', value: '128', icon: 'terminal' },
+  { label: 'Categories', value: '12', icon: 'folder' },
+  { label: 'Tags', value: '45', icon: 'tag' },
+  { label: 'Favorites', value: '24', icon: 'star' },
+];
+---
+
+<AdminLayout title="Dashboard">
+  <div class="space-y-8">
+    <!-- Welcome Header -->
+    <div>
+      <h1 class="text-2xl font-bold md:text-3xl">Welcome back, Admin</h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-1">Here's what's happening with your prompt vault.</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      {stats.map((stat) => (
+        <div class="p-6 bg-surface-card dark:bg-dark-card border border-surface-border dark:border-dark-border rounded-2xl shadow-sm">
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.label}</p>
+          <p class="text-2xl font-bold mt-2">{stat.value}</p>
+        </div>
+      ))}
+    </div>
+
+    <!-- Recent Activity Placeholder -->
+    <div class="bg-surface-card dark:bg-dark-card border border-surface-border dark:border-dark-border rounded-2xl p-6">
+      <h2 class="text-lg font-bold mb-4">Recent Prompts</h2>
+      <div class="space-y-4">
+        {[1, 2, 3].map(() => (
+          <div class="flex items-center justify-between p-4 bg-surface-bg dark:bg-dark-bg rounded-xl border border-surface-border dark:border-dark-border">
+            <div class="flex items-center space-x-4">
+              <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center" />
+              <div>
+                <p class="font-medium">Example Prompt Title</p>
+                <p class="text-xs text-gray-500">Added 2 hours ago</p>
+              </div>
+            </div>
+            <button class="text-brand-primary text-sm font-medium">View</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</AdminLayout>
