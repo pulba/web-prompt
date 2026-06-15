@@ -9,6 +9,14 @@ if (existsSync(wranglerJsonPath)) {
   console.log('Deleted dist/server/wrangler.json');
 }
 
+// 1b. Delete the deploy redirect config that points to the now-deleted wrangler.json.
+//     Without this, Cloudflare's post-build step tries to follow the redirect and fails.
+const deployConfigPath = path.resolve('.wrangler/deploy/config.json');
+if (existsSync(deployConfigPath)) {
+  unlinkSync(deployConfigPath);
+  console.log('Deleted .wrangler/deploy/config.json');
+}
+
 // 2. Delete .dev.vars from build output (secrets must NOT be deployed).
 const devVarsPath = path.resolve('dist/server/.dev.vars');
 if (existsSync(devVarsPath)) {
