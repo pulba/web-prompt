@@ -1,48 +1,32 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { writeFileSync, unlinkSync, existsSync } from 'fs';
 import path from 'path';
 
-const filePath = path.resolve('dist/server/wrangler.json');
-
-try {
-  const content = readFileSync(filePath, 'utf8');
-  const config = JSON.parse(content);
-
-  // Remove fields that conflict with Cloudflare Pages validation.
-  // Pages projects cannot have "main" or "rules" — those are Worker-only fields.
-  // "pages_build_output_dir" and "main" cannot coexist.
-  delete config.main;
-  delete config.rules;
-
-  // Remove reserved bindings — Pages manages ASSETS internally,
-  // and KV/Images bindings must be configured via the dashboard (with real IDs).
-  delete config.assets;
-  delete config.kv_namespaces;
-  delete config.images;
-  delete config.previews;
-
-  // Remove fields that Wrangler doesn't recognize for Pages projects.
-  delete config.definedEnvironments;
-  delete config.ai_search_namespaces;
-  delete config.ai_search;
-  delete config.agent_memory;
-  delete config.secrets_store_secrets;
-  delete config.artifacts;
-  delete config.unsafe_hello_world;
-  delete config.flagship;
-  delete config.worker_loaders;
-  delete config.ratelimits;
-  delete config.vpc_services;
-  delete config.vpc_networks;
-  delete config.python_modules;
-
-  // Clean up dev-only fields not recognized by Pages.
-  if (config.dev) {
-    delete config.dev.enable_containers;
-    delete config.dev.generate_types;
-  }
-
-  writeFileSync(filePath, JSON.stringify(config, null, 2));
-  console.log('Successfully patched wrangler.json for Cloudflare Pages deployment.');
-} catch (error) {
-  console.error('Error patching wrangler.json:', error.message);
+// 1. Delete the auto-generated wrangler.json that causes Cloudflare Pages
+//    validation errors (main + pages_build_output_dir conflict).
+const wranglerJsonPath = path.resolve('dist/server/wrangler.json');
+if (existsSync(wranglerJsonPath)) {
+  unlinkSync(wranglerJsonPath);
+  console.log('Deleted dist/server/wrangler.json');
 }
+
+// 2. Delete .dev.vars from build output (secrets must NOT be deployed).
+const devVarsPath = path.resolve('dist/server/.dev.vars');
+if (existsSync(devVarsPath)) {
+  unlinkSync(devVarsPath);
+  console.log('Deleted dist/server/.dev.vars');
+}
+
+// 3. Create _worker.js at the output root. This is the standard Cloudflare Pages
+//    "Advanced Mode" approach — Pages automatically picks up _worker.js as the
+//    Worker entry point, no wrangler.json needed.
+const workerJs = `export { default } from "./server/entry.mjs";\n`;
+writeFileSync(path.resolve('dist/_worker.js'), workerJs);
+console.log('Created dist/_worker.js');
+
+// 4. Create .assetsignore so the server directory and _worker.js are NOT
+//    served as static assets to visitors.
+const assetsIgnore = `_worker.js\nserver/\n`;
+writeFileSync(path.resolve('dist/.assetsignore'), assetsIgnore);
+console.log('Created dist/.assetsignore');
+
+console.log('Post-build patch complete.');
