@@ -13,4 +13,7 @@ export default defineConfig({
     nodejsCompat: true,
   }),
   integrations: [sitemap()],
+  devToolbar: {
+    enabled: false
+  },
 });

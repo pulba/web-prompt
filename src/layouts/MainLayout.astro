@@ -1,5 +1,7 @@
 ---
+import { Image } from 'astro:assets';
 import ThemeToggle from '@/components/ui/ThemeToggle.astro';
+import logoImage from '@/assets/logo.png';
 import '@/styles/globals.css';
 
 interface Props {
@@ -15,7 +17,7 @@ const { title, description = "Prompt Vault - Store and manage your AI prompts ef
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" type="image/png" href="/favicon.png" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title} | Prompt Vault</title>
 		<meta name="description" content={description} />
@@ -49,7 +51,10 @@ const { title, description = "Prompt Vault - Store and manage your AI prompts ef
 		<div class="min-h-screen flex flex-col">
 			<header class="sticky top-0 z-50 bg-surface-bg/80 dark:bg-dark-bg/80 backdrop-blur-md border-b border-surface-border dark:border-dark-border">
 				<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-					<a href="/" class="text-xl font-bold text-brand-primary">Prompt Vault</a>
+					<a href="/" class="flex items-center space-x-3 group">
+						<Image src={logoImage} alt="Prompt Vault Logo" class="w-8 h-8 rounded-lg shadow-md group-hover:scale-105 transition-transform" />
+						<span class="text-xl font-bold text-brand-primary">Prompt Vault</span>
+					</a>
 					<nav class="hidden md:flex space-x-8">
 						<a href="/prompts" class="text-sm font-medium hover:text-brand-primary transition-colors">All Prompts</a>
 						<a href="/favorites" class="text-sm font-medium hover:text-brand-primary transition-colors">Favorites</a>

@@ -1,20 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-brand-primary: #3B82F6;
-  --color-brand-accent: #10B981;
+  /* Font Family overrides */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Bebas Neue', sans-serif;
+
+  /* Color overrides based on design.md */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-accent: var(--brand-accent);
   
-  --color-surface-bg: #FFFFFF;
-  --color-surface-card: #F9FAFB;
-  --color-surface-border: #E5E7EB;
+  --color-surface-bg: var(--surface-bg);
+  --color-surface-card: var(--surface-card);
+  --color-surface-border: var(--surface-border);
   
-  --color-dark-bg: #111827;
-  --color-dark-card: #1F2937;
-  --color-dark-border: #374151;
+  --color-dark-bg: var(--dark-bg);
+  --color-dark-card: var(--dark-card);
+  --color-dark-border: var(--dark-border);
+
+  /* Semantic colors */
+  --color-sale: #d30005;
+  --color-success: #007d48;
+
+  /* Radius overrides based on design.md */
+  --radius-none: 0px;
+  --radius-sm: 18px;
+  --radius-md: 24px;
+  --radius-lg: 30px;
+  --radius-full: 9999px;
+
+  /* Elevation / Shadow override: Disable shadows as per design.md */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-2xl: none;
+  --shadow-inner: none;
+}
+
+:root {
+  --brand-primary: #111111; /* Nike Ink */
+  --brand-accent: #007d48; /* Nike Success */
+  --surface-bg: #ffffff; /* Nike Canvas */
+  --surface-card: #f5f5f5; /* Nike Soft Cloud */
+  --surface-border: #e5e5e5; /* Nike Hairline Soft */
+  
+  --dark-bg: #111111;
+  --dark-card: #1c1c1e;
+  --dark-border: #2c2c2e;
+}
+
+.dark {
+  --brand-primary: #ffffff;
+  --surface-bg: #111111;
+  --surface-card: #1c1c1e;
+  --surface-border: #2c2c2e;
 }
 
 @layer base {
   body {
-    @apply bg-surface-bg text-gray-900 dark:bg-dark-bg dark:text-gray-100;
+    @apply bg-surface-bg text-gray-900 dark:bg-dark-bg dark:text-gray-100 font-sans;
+  }
+
+  /* Ensure text inside elements with bg-brand-primary is legible (adapts between white and dark) */
+  .bg-brand-primary {
+    color: var(--surface-bg) !important;
   }
 }

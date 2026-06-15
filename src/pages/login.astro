@@ -1,8 +1,10 @@
 ---
+import { Image } from 'astro:assets';
 import MainLayout from '@/layouts/MainLayout.astro';
 import { verifyPassword } from '@/lib/auth/password';
 import { createSession } from '@/lib/auth/session';
 import { dbClient } from '@/lib/db';
+import logoImage from '@/assets/logo.png';
 
 let error = '';
 
@@ -41,6 +43,7 @@ if (Astro.request.method === 'POST') {
   <div class="max-w-md mx-auto py-20">
     <div class="bg-surface-card dark:bg-dark-card p-8 rounded-3xl border border-surface-border dark:border-dark-border shadow-xl">
       <div class="text-center mb-8">
+        <Image src={logoImage} alt="Prompt Vault Logo" class="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg" />
         <h1 class="text-3xl font-bold">Welcome Back</h1>
         <p class="text-gray-500 mt-2">Login to manage your prompts</p>
       </div>

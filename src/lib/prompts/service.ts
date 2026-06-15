@@ -14,7 +14,8 @@ export const promptService = {
   async createPrompt(data: unknown, tagIds?: number[]) {
     const validated = promptSchema.parse(data);
     
-    return await dbClient.transaction(async (tx) => {
+    const tx = await dbClient.transaction('write');
+    try {
       const result = await tx.execute({
         sql: 'INSERT INTO prompts (title, content, category_id, source, favorite) VALUES (?, ?, ?, ?, ?)',
         args: [validated.title, validated.content, validated.category_id ?? null, validated.source ?? null, validated.favorite],
@@ -31,14 +32,19 @@ export const promptService = {
         });
       }
       
+      await tx.commit();
       return id;
-    });
+    } catch (e) {
+      await tx.rollback();
+      throw e;
+    }
   },
 
   async updatePrompt(id: number, data: unknown, tagIds?: number[]) {
     const validated = promptSchema.partial().parse(data);
     
-    await dbClient.transaction(async (tx) => {
+    const tx = await dbClient.transaction('write');
+    try {
       // Update prompt fields
       const allowedFields: (keyof PromptInput)[] = ['title', 'content', 'category_id', 'source', 'favorite'];
       const sets: string[] = [];
@@ -75,7 +81,12 @@ export const promptService = {
           });
         }
       }
-    });
+
+      await tx.commit();
+    } catch (e) {
+      await tx.rollback();
+      throw e;
+    }
   },
 
   async deletePrompt(id: number) {
