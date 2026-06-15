@@ -1,4 +1,4 @@
-import { writeFileSync, unlinkSync, existsSync } from 'fs';
+import { writeFileSync, unlinkSync, existsSync, cpSync } from 'fs';
 import path from 'path';
 
 // 1. Delete the auto-generated wrangler.json that causes Cloudflare Pages
@@ -24,16 +24,23 @@ if (existsSync(devVarsPath)) {
   console.log('Deleted dist/server/.dev.vars');
 }
 
-// 3. Create _worker.js at the output root. This is the standard Cloudflare Pages
+// 3. Copy client assets to dist root so Cloudflare Pages can serve them.
+//    Astro puts static files in dist/client/_astro/ but HTML references /_astro/.
+//    Since pages_build_output_dir is "./dist", Pages serves from dist/ root.
+//    Without this copy, CSS/JS/images would all return 404.
+cpSync(path.resolve('dist/client'), path.resolve('dist'), { recursive: true });
+console.log('Copied dist/client/* to dist/');
+
+// 4. Create _worker.js at the output root. This is the standard Cloudflare Pages
 //    "Advanced Mode" approach — Pages automatically picks up _worker.js as the
 //    Worker entry point, no wrangler.json needed.
 const workerJs = `export { default } from "./server/entry.mjs";\n`;
 writeFileSync(path.resolve('dist/_worker.js'), workerJs);
 console.log('Created dist/_worker.js');
 
-// 4. Create .assetsignore so the server directory and _worker.js are NOT
+// 5. Create .assetsignore so the server directory and _worker.js are NOT
 //    served as static assets to visitors.
-const assetsIgnore = `_worker.js\nserver/\n`;
+const assetsIgnore = `_worker.js\nserver/\nclient/\n`;
 writeFileSync(path.resolve('dist/.assetsignore'), assetsIgnore);
 console.log('Created dist/.assetsignore');
 
