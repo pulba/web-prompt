@@ -2,27 +2,17 @@ import { createClient } from '@libsql/client';
 import bcrypt from 'bcryptjs';
 import fs from 'fs';
 
-// Parse .env manually
-const envPath = './.env';
-if (!fs.existsSync(envPath)) {
-  console.error('❌ .env file not found!');
+// ponytail: using native process.loadEnvFile() to avoid custom parsing
+try {
+  process.loadEnvFile();
+} catch (e) {
+  console.error('❌ .env file not found or failed to load!');
   process.exit(1);
 }
 
-const envContent = fs.readFileSync(envPath, 'utf8');
-const env = {};
-envContent.split('\n').forEach(line => {
-  const parts = line.split('=');
-  if (parts.length >= 2) {
-    const key = parts[0].trim();
-    const val = parts.slice(1).join('=').trim();
-    env[key] = val;
-  }
-});
-
 const client = createClient({
-  url: env.TURSO_DATABASE_URL || '',
-  authToken: env.TURSO_AUTH_TOKEN || '',
+  url: process.env.TURSO_DATABASE_URL || '',
+  authToken: process.env.TURSO_AUTH_TOKEN || '',
 });
 
 async function main() {

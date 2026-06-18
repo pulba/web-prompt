@@ -2,17 +2,17 @@ import { createClient } from '@libsql/client';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Simple .env reader
-const envContent = fs.readFileSync('.env', 'utf-8');
-const env: Record<string, string> = {};
-envContent.split('\n').forEach(line => {
-  const [key, ...val] = line.split('=');
-  if (key && val) env[key.trim()] = val.join('=').trim();
-});
+// ponytail: using native process.loadEnvFile() to avoid custom parsing
+try {
+  process.loadEnvFile();
+} catch (e) {
+  console.error('❌ .env file not found or failed to load!');
+  process.exit(1);
+}
 
 const client = createClient({
-  url: env.TURSO_DATABASE_URL,
-  authToken: env.TURSO_AUTH_TOKEN,
+  url: process.env.TURSO_DATABASE_URL,
+  authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
 const migrationsDir = './migrations';

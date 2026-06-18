@@ -11,7 +11,8 @@ export const POST: APIRoute = async ({ request }) => {
   const expectedSecret = getEnv('TELEGRAM_WEBHOOK_SECRET');
 
   if (expectedSecret && secretToken !== expectedSecret) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    // ponytail: using standard Response.json()
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
@@ -19,7 +20,8 @@ export const POST: APIRoute = async ({ request }) => {
     const result = telegramUpdateSchema.safeParse(body);
 
     if (!result.success) {
-      return new Response(JSON.stringify({ error: 'Invalid payload' }), { status: 400 });
+      // ponytail: using standard Response.json()
+      return Response.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
     const { message } = result.data;
@@ -30,20 +32,24 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!allowedChatId) {
       console.error('❌ TELEGRAM_ALLOWED_CHAT_ID is not set in environment');
-      return new Response(JSON.stringify({ error: 'Server configuration error' }), { status: 500 });
+      // ponytail: using standard Response.json()
+      return Response.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     if (message?.chat.id && message.chat.id.toString() !== allowedChatId) {
-      return new Response(JSON.stringify({ error: 'Unauthorized Chat ID' }), { status: 403 });
+      // ponytail: using standard Response.json()
+      return Response.json({ error: 'Unauthorized Chat ID' }, { status: 403 });
     }
 
     if (message?.text) {
       await telegramService.processMessage(message.chat.id, message.text);
     }
 
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
+    // ponytail: using standard Response.json()
+    return Response.json({ success: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Unknown error';
-    return new Response(JSON.stringify({ success: false, error: message }), { status: 500 });
+    // ponytail: using standard Response.json()
+    return Response.json({ success: false, error: message }, { status: 500 });
   }
 };

@@ -17,10 +17,10 @@ const tagsCount = Number(tagsCountRes.rows[0].count);
 const favoritesCount = Number(favoritesCountRes.rows[0].count);
 
 const stats = [
-  { label: 'Total Prompts', value: promptsCount.toString(), icon: 'terminal' },
-  { label: 'Categories', value: categoriesCount.toString(), icon: 'folder' },
-  { label: 'Tags', value: tagsCount.toString(), icon: 'tag' },
-  { label: 'Favorites', value: favoritesCount.toString(), icon: 'star' },
+  { label: 'Total Prompts', value: promptsCount.toString() },
+  { label: 'Categories', value: categoriesCount.toString() },
+  { label: 'Tags', value: tagsCount.toString() },
+  { label: 'Favorites', value: favoritesCount.toString() },
 ];
 
 // 2. Fetch the 3 most recent prompts
